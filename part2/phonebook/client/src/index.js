@@ -43,7 +43,9 @@ const App = () => {
       personService
         .deletePerson(personID)
         .then(() => {
-          setPersons(persons.filter(item => item.id !== personID));
+          let check = persons.filter(item => item.id != personID);
+          console.log("Check", check);
+          setPersons(check);
         })
         .catch(error => {
           console.log("Error", error);
@@ -53,16 +55,32 @@ const App = () => {
 
   const addNameNum = event => {
     event.preventDefault();
-    if (persons.some(p => p.name.toLowerCase() === newName.toLowerCase())) {
-      alert(`${newName} has allready been added to the phonebook`);
-    } else {
-      const personObject = {
-        name: newName,
-        number: newNumber
-      };
+    const personObject = {
+      name: newName,
+      number: newNumber
+    };
+    console.log("Name", newName);
+    console.log("Number", newNumber);
 
+    if (persons.some(p => p.name.toLowerCase() === newName.toLowerCase())) {
+      let personId = persons.find(
+        p => p.name.toLowerCase() === newName.toLowerCase()
+      );
+      let updatedEntry = Object.assign(personId, personObject);
+      window.confirm(
+        `${newName} is allready in the phonebok. Would you like to replace the old number with a new one?`
+      );
+      personService.update(personId.id, personObject).then(() => {
+        setPersons(
+          persons.map(item => (item.name === newName ? updatedEntry : item))
+        );
+        setNewName("");
+        setNewNumber("");
+      });
+    } else {
       personService
         .create(personObject)
+        .then(console.log("Object", personObject))
         .then(data => setPersons(persons.concat(data)));
       setNewName("");
       setNewNumber("");
