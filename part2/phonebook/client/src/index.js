@@ -4,13 +4,19 @@ import Filter from "./components/Filter";
 import PersonForm from "./components/PersonForm";
 import Persons from "./components/Persons";
 
-import axios from "axios";
+import personService from "./services/numbers";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFiltered] = useState("");
+
+  useEffect(() => {
+    personService.getAll().then(initialPersons => setPersons(initialPersons));
+  }, []);
+
+  console.log("Persons", persons);
 
   const peopleToShow =
     filter === ""
@@ -22,17 +28,28 @@ const App = () => {
   const rows = () =>
     peopleToShow.map(p => (
       <p key={p.name}>
-        {p.name} {p.number}
+        {p.name} {p.number}{" "}
+        <span>
+          <button value={p.id} onClick={deleteNum}>
+            delete
+          </button>
+        </span>
       </p>
     ));
 
-  useEffect(() => {
-    console.log("effect");
-    axios.get("http://localhost:3001/persons").then(response => {
-      console.log("promise fulfilled");
-      setPersons(response.data);
-    });
-  }, []);
+  const deleteNum = event => {
+    let personID = event.target.value;
+    if (window.confirm("Do you really want to delete?")) {
+      personService
+        .deletePerson(personID)
+        .then(() => {
+          setPersons(persons.filter(item => item.id !== personID));
+        })
+        .catch(error => {
+          console.log("Error", error);
+        });
+    }
+  };
 
   const addNameNum = event => {
     event.preventDefault();
@@ -43,8 +60,12 @@ const App = () => {
         name: newName,
         number: newNumber
       };
-      setPersons(persons.concat(personObject));
-      console.log("Persons", persons);
+
+      personService
+        .create(personObject)
+        .then(data => setPersons(persons.concat(data)));
+      setNewName("");
+      setNewNumber("");
     }
   };
 
