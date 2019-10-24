@@ -4,6 +4,8 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const cors = require("cors");
 
+const Person = require("./models/person");
+
 morgan.token("body", function(req, res) {
   return JSON.stringify(req.body);
 });
@@ -33,18 +35,31 @@ let persons = [
   }
 ];
 
-app.get("/api/persons", (req, res) => {
-  res.json(persons);
+// const Person = mongoose.model("Person", personSchema);
+
+//End Mongoose Data
+
+//Get all Numbers
+
+app.get("/api/persons", (req, res, next) => {
+  Person.find({})
+    .then(persons => {
+      res.json(persons);
+    })
+    .catch(error => next(error));
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find(person => person.id === id);
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  // const id = Number(request.params.id);
+  // const person = persons.find(person => person.id === id);
+  // if (person) {
+  //   response.json(person);
+  // } else {
+  //   response.status(404).end();
+  // }
+  Person.findById(request.params.id).then(person => {
+    response.json(person.toJSON());
+  });
 });
 
 app.post("/api/persons/", (request, response) => {
@@ -72,15 +87,17 @@ app.post("/api/persons/", (request, response) => {
 
   console.log("Person", body);
 
-  const newPerson = {
+  const person = new Person({
     id: randomID,
     name: body.name,
     number: body.number
-  };
+  });
 
-  persons = persons.concat(newPerson);
+  // persons = persons.concat(newPerson);
 
-  response.json(newPerson);
+  person.save().then(savedPerson => {
+    response.json(savedPerson.toJSON());
+  });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
@@ -99,7 +116,8 @@ app.get("/info", (req, res) => {
   );
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
