@@ -10,6 +10,21 @@ morgan.token("body", function(req, res) {
   return JSON.stringify(req.body);
 });
 
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
+};
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError" && error.kind == "ObjectId") {
+    return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
+  }
+  next(error);
+};
+
 app.use(
   morgan(":method :url :status :response-time ms - :res[content-length] :body")
 );
@@ -40,38 +55,24 @@ app.get("/api/persons/:id", (request, response, next) => {
     .catch(error => next(error));
 });
 
-app.post("/api/persons/", (request, response) => {
-  const randomID = Math.floor(Math.random() * Math.floor(1000));
-
-  const body = request.body;
-
-  if (!body.name) {
-    return response.status(400).json({
-      error: "Name is missing"
-    });
-  }
-
-  if (!body.number) {
-    return response.status(400).json({
-      error: "Number is missing"
-    });
-  }
-
-  if (persons.some(p => p.name.toLowerCase() === body.name.toLowerCase())) {
-    return response.status(400).json({
-      error: "Name allready in phonebook"
+app.post("/api/persons", (req, res, next) => {
+  if (!req.body.name || !req.body.number) {
+    return res.status(400).json({
+      error: "content missing"
     });
   }
 
   const person = new Person({
-    id: randomID,
-    name: body.name,
-    number: body.number
+    name: req.body.name,
+    number: req.body.number
   });
 
-  person.save().then(savedPerson => {
-    response.json(savedPerson.toJSON());
-  });
+  person
+    .save()
+    .then(person => {
+      res.json(person.toJSON());
+    })
+    .catch(error => next(error));
 });
 
 app.delete("/api/persons/:id", (request, response, next) => {
@@ -110,6 +111,9 @@ app.get("/info", (req, res, next) => {
     })
     .catch(error => next(error));
 });
+
+app.use(errorHandler);
+app.use(unknownEndpoint);
 
 const PORT = process.env.PORT;
 

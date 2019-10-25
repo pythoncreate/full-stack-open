@@ -93,11 +93,6 @@ const App = () => {
           `${newName} is allready in the phonebok. Would you like to replace the old number with a new one?`
         )
       ) {
-        console.log(
-          persons.find(
-            person => person.name.toLowerCase() === newName.toLowerCase().id
-          )
-        );
         const personId = persons.find(
           person => person.name.toLowerCase() === newName.toLowerCase()
         ).id;
@@ -118,7 +113,7 @@ const App = () => {
       })
       .catch(error => {
         showMessage(
-          `Sorry can't add that number. Here's why: ,
+          `Sorry can't add that number. Here's why:
             ${error.response.data.error}`,
           false
         );
