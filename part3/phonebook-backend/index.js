@@ -13,8 +13,9 @@ morgan.token("body", function(req, res) {
 app.use(
   morgan(":method :url :status :response-time ms - :res[content-length] :body")
 );
-app.use(bodyParser.json());
+
 app.use(express.static("build"));
+app.use(bodyParser.json());
 app.use(cors());
 
 let persons = [
@@ -49,7 +50,7 @@ app.get("/api/persons", (req, res, next) => {
     .catch(error => next(error));
 });
 
-app.get("/api/persons/:id", (request, response) => {
+app.get("/api/persons/:id", (request, response, next) => {
   // const id = Number(request.params.id);
   // const person = persons.find(person => person.id === id);
   // if (person) {
@@ -57,9 +58,15 @@ app.get("/api/persons/:id", (request, response) => {
   // } else {
   //   response.status(404).end();
   // }
-  Person.findById(request.params.id).then(person => {
-    response.json(person.toJSON());
-  });
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person.toJSON());
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch(error => next(error));
 });
 
 app.post("/api/persons/", (request, response) => {
@@ -100,10 +107,15 @@ app.post("/api/persons/", (request, response) => {
   });
 });
 
-app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter(person => person.id !== id);
-  response.status(204).end();
+app.delete("/api/persons/:id", (request, response, next) => {
+  // const id = Number(request.params.id);
+  // persons = persons.filter(person => person.id !== id);
+  // response.status(204).end();
+  Person.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end();
+    })
+    .catch(error => next(error));
 });
 
 app.get("/info", (req, res) => {
