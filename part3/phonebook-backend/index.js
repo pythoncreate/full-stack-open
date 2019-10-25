@@ -18,28 +18,6 @@ app.use(express.static("build"));
 app.use(bodyParser.json());
 app.use(cors());
 
-let persons = [
-  {
-    id: 1,
-    name: "Chris",
-    number: "7817898889"
-  },
-  {
-    id: 2,
-    name: "Chris",
-    number: "7817898889"
-  },
-  {
-    id: 3,
-    name: "Chris",
-    number: "7817898889"
-  }
-];
-
-// const Person = mongoose.model("Person", personSchema);
-
-//End Mongoose Data
-
 //Get all Numbers
 
 app.get("/api/persons", (req, res, next) => {
@@ -51,13 +29,6 @@ app.get("/api/persons", (req, res, next) => {
 });
 
 app.get("/api/persons/:id", (request, response, next) => {
-  // const id = Number(request.params.id);
-  // const person = persons.find(person => person.id === id);
-  // if (person) {
-  //   response.json(person);
-  // } else {
-  //   response.status(404).end();
-  // }
   Person.findById(request.params.id)
     .then(person => {
       if (person) {
@@ -92,15 +63,11 @@ app.post("/api/persons/", (request, response) => {
     });
   }
 
-  console.log("Person", body);
-
   const person = new Person({
     id: randomID,
     name: body.name,
     number: body.number
   });
-
-  // persons = persons.concat(newPerson);
 
   person.save().then(savedPerson => {
     response.json(savedPerson.toJSON());
@@ -108,9 +75,6 @@ app.post("/api/persons/", (request, response) => {
 });
 
 app.delete("/api/persons/:id", (request, response, next) => {
-  // const id = Number(request.params.id);
-  // persons = persons.filter(person => person.id !== id);
-  // response.status(204).end();
   Person.findByIdAndRemove(request.params.id)
     .then(result => {
       response.status(204).end();
@@ -118,14 +82,33 @@ app.delete("/api/persons/:id", (request, response, next) => {
     .catch(error => next(error));
 });
 
-app.get("/info", (req, res) => {
-  res.send(
-    "<div>Phonebook has info for " +
-      persons.length +
-      " people." +
-      `<br/><br/>` +
-      new Date()
-  );
+app.put("/api/persons/:id", (request, response, next) => {
+  const body = request.body;
+
+  const person = {
+    name: body.name,
+    number: body.number
+  };
+
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(updatedPerson => {
+      response.json(updatedPerson.toJSON());
+    })
+    .catch(error => next(error));
+});
+
+app.get("/info", (req, res, next) => {
+  Person.find({})
+    .then(persons => {
+      res.send(
+        `<div>Phonebook has info for ${persons.length} people.
+         </div>
+         <div>
+        ${new Date()}
+        </div>`
+      );
+    })
+    .catch(error => next(error));
 });
 
 const PORT = process.env.PORT;

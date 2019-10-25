@@ -60,56 +60,69 @@ const App = () => {
     }
   };
 
-  const addNameNum = event => {
+  const resetForm = () => {
+    setNewName("");
+    setNewNumber("");
+  };
+
+  const updatePerson = (id, personObject) => {
+    personService.update(id, personObject).then(updatedPerson => {
+      showMessage(`Success! User ${newName} was updated`);
+      setPersons(
+        persons.map(person => (person.id !== id ? person : updatedPerson))
+      );
+      resetForm();
+    });
+  };
+
+  const addPerson = event => {
     event.preventDefault();
+
     const personObject = {
       name: newName,
       number: newNumber
     };
 
-    if (persons.some(p => p.name.toLowerCase() === newName.toLowerCase())) {
-      let personId = persons.find(
-        p => p.name.toLowerCase() === newName.toLowerCase()
-      );
-      let updatedEntry = Object.assign(personId, personObject);
+    const existingPerson = persons.some(
+      p => p.name.toLowerCase() === newName.toLowerCase()
+    );
 
-      window.confirm(
-        `${newName} is allready in the phonebok. Would you like to replace the old number with a new one?`
-      );
-
-      personService
-        .update(personId.id, personObject)
-        .then(() => {
-          setPersons(
-            persons.map(item => (item.name === newName ? updatedEntry : item))
-          );
-          showMessage(`Success! User ${newName} was updated`);
-          setNewName("");
-          setNewNumber("");
-        })
-        .catch(error => {
-          showMessage(
-            `Update failed, ${newName} allready removed from phonebook`,
-            false
-          );
-        });
-    } else {
-      personService
-        .create(personObject)
-        .then(data => {
-          setPersons(persons.concat(data));
-          showMessage(`Success! User ${newName} was added`);
-          setNewName("");
-          setNewNumber("");
-        })
-        .catch(error => {
-          showMessage(
-            `Sorry can't add that number. Here's why: ,
-            ${error.response.data.error}`,
-            false
-          );
-        });
+    if (existingPerson) {
+      if (
+        window.confirm(
+          `${newName} is allready in the phonebok. Would you like to replace the old number with a new one?`
+        )
+      ) {
+        console.log(
+          persons.find(
+            person => person.name.toLowerCase() === newName.toLowerCase().id
+          )
+        );
+        const personId = persons.find(
+          person => person.name.toLowerCase() === newName.toLowerCase()
+        ).id;
+        updatePerson(personId, personObject);
+      }
+      return;
     }
+    createPerson(personObject);
+  };
+
+  const createPerson = personObject => {
+    personService
+      .create(personObject)
+      .then(data => {
+        setPersons(persons.concat(data));
+        showMessage(`Success! User ${newName} was added`);
+        resetForm();
+      })
+      .catch(error => {
+        showMessage(
+          `Sorry can't add that number. Here's why: ,
+            ${error.response.data.error}`,
+          false
+        );
+      });
   };
 
   const showMessage = (message, successNotification = true) => {
@@ -144,7 +157,7 @@ const App = () => {
       <h2>Add a new</h2>
 
       <PersonForm
-        onSubmit={addNameNum}
+        onSubmit={addPerson}
         name={{ value: newName, onChange: handleNameChange }}
         number={{ value: newNumber, onChange: handleNumberChange }}
       />
