@@ -142,26 +142,28 @@ const App = () => {
   };
 
   return (
-    <div>
-      <h1>Phonebook</h1>
-
+    <>
+      <nav className="navbar navbar-dark bg-dark">
+        <a className="navbar-brand sticky-top" href="#">
+          <h2>Phonebook</h2>
+        </a>
+      </nav>
       <Notification notification={notification} success={success} />
-
-      <Filter value={filter} onChange={handleSearch} />
-
-      <h2>Add a new</h2>
-
-      <PersonForm
-        onSubmit={addPerson}
-        name={{ value: newName, onChange: handleNameChange }}
-        number={{ value: newNumber, onChange: handleNumberChange }}
-      />
-
-      <h3>Numbers</h3>
-
-      <Persons persons={rows()} />
-    </div>
+      <div className="row mb-2">
+        <Filter value={filter} onChange={handleSearch} />
+      </div>
+      <div className="row mb-2">
+        <PersonForm
+          onSubmit={addPerson}
+          name={{ value: newName, onChange: handleNameChange }}
+          number={{ value: newNumber, onChange: handleNumberChange }}
+        />
+      </div>
+      <div className="row mb-2">
+        <Persons persons={rows()} />
+      </div>
+    </>
   );
 };
 
-ReactDOM.render(<App />, document.getElementById("root"));
+ReactDOM.render(<App />, document.getElementById("container"));
