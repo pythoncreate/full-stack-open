@@ -12,15 +12,11 @@ const blogSchema = mongoose.Schema({
 });
 
 blogSchema.set("toJSON", {
-  transform: doc => ({
-    // eslint-disable-next-line no-underscore-dangle
-    id: doc._id.toString(),
-    title: doc.title,
-    author: doc.author,
-    url: doc.url,
-    likes: doc.likes,
-    user: doc.user
-  })
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  }
 });
 
 module.exports = mongoose.model("Blog", blogSchema);

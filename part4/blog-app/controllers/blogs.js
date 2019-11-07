@@ -77,20 +77,12 @@ blogsRouter.put("/:id", async (request, response, next) => {
   }
 });
 
-blogsRouter.delete("/:id", async (request, response, next) => {
-  try {
-    const blog = await Blog.findById(request.params.id);
-    if (blog.user.toString() !== request.token.id) {
-      return response
-        .status(403)
-        .json({ error: "You cannot delete that blog" });
-    }
-
-    await blog.remove();
-    response.status(204).end();
-  } catch (error) {
-    next(error);
-  }
+blogsRouter.delete("/:id", (request, response) => {
+  Blog.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end();
+    })
+    .catch(error => console.log("Error", error));
 });
 
 module.exports = blogsRouter;
