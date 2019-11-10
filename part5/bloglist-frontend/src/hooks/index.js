@@ -23,3 +23,5 @@ export const useField = type => {
     }
   };
 };
+
+export const useResource = 
