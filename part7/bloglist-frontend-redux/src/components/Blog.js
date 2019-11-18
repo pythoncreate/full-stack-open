@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { addLike } from "../reducers/blogReducer";
+import { setNofification } from "../notifications/notficationReducer";
 
-const Blog = ({ blog, user, removeBlog }) => {
+const Blog = ({ props, blog, user, removeBlog }) => {
   const [visible, setVisible] = useState(false);
 
   const vote = async blog => {
     await addLike(blog);
+    setNofification(`You just liked ${blog.title}!`);
   };
 
   const normal = {

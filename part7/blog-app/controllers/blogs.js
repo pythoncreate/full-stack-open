@@ -1,7 +1,19 @@
 const blogsRouter = require("express").Router();
 const Blog = require("../models/blog");
 const User = require("../models/user");
+const Comment = require("../models/comment");
 const jwt = require("jsonwebtoken");
+
+blogsRouter.get("/", async (request, response) => {
+  const blogs = await Blog.find({})
+    .populate("user", {
+      username: 1,
+      name: 1,
+      id: 1
+    })
+    .populate("comments");
+  response.json(blogs);
+});
 
 const getTokenFrom = request => {
   const authorization = request.get("authorization");
@@ -41,15 +53,6 @@ blogsRouter.post("/", async (request, response, next) => {
   }
 });
 
-blogsRouter.get("/", async (request, response) => {
-  const blogs = await Blog.find({}).populate("user", {
-    username: 1,
-    name: 1,
-    id: 1
-  });
-  response.json(blogs);
-});
-
 blogsRouter.get("/:id", async (request, response, next) => {
   try {
     const blog = await Blog.findById(request.params.id);
@@ -70,7 +73,9 @@ blogsRouter.put("/:id", async (request, response, next) => {
     likes: body.likes
   };
   try {
-    await Blog.findByIdAndUpdate(request.params.id, blog, { new: true });
+    await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
+      .populate("user", { username: 1, name: 1 })
+      .populate("comments");
     response.status(204).end();
   } catch (error) {
     next(error);
@@ -83,6 +88,22 @@ blogsRouter.delete("/:id", (request, response) => {
       response.status(204).end();
     })
     .catch(error => console.log("Error", error));
+});
+
+blogsRouter.post("/:id/comments", async (request, response, next) => {
+  try {
+    const blog = await Blog.findById(request.params.id);
+    const comment = new Comment({
+      comment: request.body.comment,
+      blog: blog._id
+    });
+    const result = await comment.save();
+    blog.comments = blog.comments.concat(result._id);
+    await blog.save();
+    response.status(201).json(result.toJSON());
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = blogsRouter;

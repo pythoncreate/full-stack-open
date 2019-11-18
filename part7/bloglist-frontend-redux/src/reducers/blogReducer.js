@@ -2,6 +2,10 @@ import blogService from "../services/blogs";
 
 const blogReducer = (state = [], action) => {
   switch (action.type) {
+    case "NEW_BLOG":
+      return [...state, action.data];
+    case "REMOVE_BLOG":
+      return state.filter(({ id }) => id !== action.data.id);
     case "LIKE":
       const id = action.data.id;
       const blogToChange = state.find(a => a.id === id);
@@ -10,10 +14,6 @@ const blogReducer = (state = [], action) => {
         likes: blogToChange.likes + 1
       };
       return state.map(blog => (blog.id !== id ? blog : changedBlog));
-    case "NEW_BLOG":
-      return [...state, action.data];
-    case "REMOVE_BLOG":
-      return state.filter(({ id }) => id !== action.data.id);
     case "INIT_BLOGS":
       return action.data;
     default:
