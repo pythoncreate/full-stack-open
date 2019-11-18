@@ -5,6 +5,15 @@ const userReducer = (state = [], action) => {
   switch (action.type) {
     case "NEW_USER":
       return [...state, action.data];
+    case "UPDATE_USER":
+      const username = action.data.id.username;
+      console.log("Action Data", action.data);
+      const userToChange = state.find(a => a.username === username);
+      console.log("User to Change", userToChange);
+      const changedUser = userToChange.blogs.concat(action.data);
+      return state.map(user =>
+        user.username !== username ? user : changedUser
+      );
     case "DELETE_USER":
       const removeObject = action.data;
       return state.filter(user => user.id !== removeObject.id);
@@ -21,6 +30,18 @@ export const initializeUsers = () => {
     dispatch({
       type: "INIT_USERS",
       data: users
+    });
+  };
+};
+
+export const updateUser = (id, blog) => {
+  return async dispatch => {
+    dispatch({
+      type: "UPDATE_USER",
+      data: {
+        id: id,
+        data: blog
+      }
     });
   };
 };

@@ -51,4 +51,22 @@ usersRouter.get("/:id", async (request, response, next) => {
   }
 });
 
+usersRouter.put("/:id", async (request, response, next) => {
+  const body = request.body;
+  const updateUser = {
+    username: body.username,
+    password: body.password,
+    name: body.name,
+    blogs: [body.blogs]
+  };
+  try {
+    await User.findByIdAndUpdate(request.params.id, updateUser, {
+      new: true
+    });
+    response.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = usersRouter;
