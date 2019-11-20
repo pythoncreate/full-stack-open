@@ -35,6 +35,7 @@ if (process.env.NODE_ENV === "test") {
   app.use("/api/testing", testingRouter);
 }
 
+app.use(express.static("build"));
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
 
